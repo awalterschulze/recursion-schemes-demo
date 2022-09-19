@@ -1,2 +1,4 @@
-# recursion-schemes-demo
-Demo of recursion schemes using derivatives for regular expressions as an example
+# recursion schemes demo with derivatives for regular expressions.
+
+Demo of Haskell's recursion schemes using derivatives for regular expressions as an example.
+
