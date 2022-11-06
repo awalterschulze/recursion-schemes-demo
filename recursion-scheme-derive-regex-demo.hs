@@ -46,16 +46,16 @@ x |> f = f x
 
 type NullableFAlgebra = FAlgebra RegexF Bool
 
-nullable' :: NullableFAlgebra
-nullable' EmptySet = False
-nullable' EmptyString = True
-nullable' Character{} = False
-nullable' (Concat a b) = a && b
-nullable' ZeroOrMore{} = True
-nullable' (Or a b) = a || b
+nullableAlg :: NullableFAlgebra
+nullableAlg EmptySet = False
+nullableAlg EmptyString = True
+nullableAlg Character{} = False
+nullableAlg (Concat a b) = a && b
+nullableAlg ZeroOrMore{} = True
+nullableAlg (Or a b) = a || b
 
 nullable :: Regex -> Bool
-nullable = cata nullable'
+nullable = cata nullableAlg
 
 type RAlgebra f r = f (Fix f, r) -> r
 
@@ -67,22 +67,22 @@ para alg f =
 
 type DeriveRAlgebra = RAlgebra RegexF Regex
 
-deriv' :: Char -> DeriveRAlgebra
-deriv' _ EmptyString = emptySet
-deriv' _ EmptySet = emptySet
-deriv' c (Character a) = if a == c 
+derivAlg :: Char -> DeriveRAlgebra
+derivAlg _ EmptyString = emptySet
+derivAlg _ EmptySet = emptySet
+derivAlg c (Character a) = if a == c 
     then emptyString else emptySet
-deriv' c (Concat (r, dr) (s, ds)) =
+derivAlg c (Concat (r, dr) (s, ds)) =
   if nullable r
   then (dr `concat` s) `or` ds
   else dr `concat` s
-deriv' _ (ZeroOrMore (r, dr)) =
+derivAlg _ (ZeroOrMore (r, dr)) =
   dr `concat` zeroOrMore r
-deriv' _ (Or (_, dr) (_, ds)) =
+derivAlg _ (Or (_, dr) (_, ds)) =
   dr `or` ds
 
 deriv :: Regex -> Char -> Regex
-deriv expr c = para (deriv' c) expr
+deriv expr c = para (derivAlg c) expr
 
 match :: Regex -> String -> Bool
 match expr string = nullable (foldl deriv expr string)
